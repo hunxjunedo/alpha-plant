@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PlantViewer } from "./plant-viewer"
+import { CreatePlantFormModal } from "./create-plant-form-modal"
 
 interface Plant {
   id: string
@@ -22,17 +23,24 @@ interface User {
   plants: string[]
 }
 
-export function UsersList() {
+interface UsersListProps {
+  onPlantSelected?: () => void
+  showPlantDetailsTab?: boolean
+}
+
+export function UsersList({ onPlantSelected, showPlantDetailsTab }: UsersListProps) {
   const [users, setUsers] = useState<User[]>([])
   const [plants, setPlants] = useState<Record<string, Plant>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null)
-  const [showPlantViewer, setShowPlantViewer] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [showPlantForm, setShowPlantForm] = useState(false)
+  const [usersRefresh, setUsersRefresh] = useState(0)
 
   useEffect(() => {
     fetchUsers()
-  }, [])
+  }, [usersRefresh])
 
   const fetchUsers = async () => {
     try {
@@ -70,7 +78,34 @@ export function UsersList() {
 
   const handleViewPlant = (plant: Plant) => {
     setSelectedPlant(plant)
-    setShowPlantViewer(true)
+    onPlantSelected?.()
+  }
+
+  const handleAddPlant = (user: User) => {
+    setSelectedUser(user)
+    setShowPlantForm(true)
+  }
+
+  const handlePlantCreated = () => {
+    setShowPlantForm(false)
+    setSelectedUser(null)
+    setUsersRefresh((prev) => prev + 1)
+  }
+
+  if (showPlantDetailsTab && selectedPlant) {
+    return (
+      <Card>
+        <CardHeader>
+          <Button variant="ghost" onClick={() => setSelectedPlant(null)}>
+            ← Back to Users
+          </Button>
+          <CardTitle className="mt-4">{selectedPlant.name}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PlantViewer plant={selectedPlant} onClose={() => setSelectedPlant(null)} />
+        </CardContent>
+      </Card>
+    )
   }
 
   if (loading) return <div>Loading users...</div>
@@ -92,6 +127,7 @@ export function UsersList() {
                   <TableHead>House</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Plants</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -119,6 +155,11 @@ export function UsersList() {
                         <span className="text-muted-foreground text-sm">No plants</span>
                       )}
                     </TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm" onClick={() => handleAddPlant(user)}>
+                        + Add Plant
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -127,18 +168,12 @@ export function UsersList() {
         </CardContent>
       </Card>
 
-      {showPlantViewer && selectedPlant && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => setShowPlantViewer(false)}
-        >
-          <div
-            className="bg-background rounded-lg shadow-lg max-w-2xl w-full max-h-96 overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <PlantViewer plant={selectedPlant} onClose={() => setShowPlantViewer(false)} />
-          </div>
-        </div>
+      {showPlantForm && selectedUser && (
+        <CreatePlantFormModal
+          user={selectedUser}
+          onSuccess={handlePlantCreated}
+          onClose={() => setShowPlantForm(false)}
+        />
       )}
     </>
   )

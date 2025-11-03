@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { AdminLogin } from "@/components/admin-login"
 import { CreateUserForm } from "@/components/create-user-form"
-import { CreatePlantForm } from "@/components/create-plant-form"
 import { UsersList } from "@/components/users-list"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -11,6 +10,7 @@ export default function AdminDashboard() {
   const [authenticated, setAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
   const [usersRefresh, setUsersRefresh] = useState(0)
+  const [selectedPlantTab, setSelectedPlantTab] = useState(false)
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -34,6 +34,10 @@ export default function AdminDashboard() {
 
   const handleUserCreated = () => {
     setUsersRefresh((prev) => prev + 1)
+  }
+
+  const handlePlantSelected = () => {
+    setSelectedPlantTab(true)
   }
 
   const handleLogout = async () => {
@@ -65,23 +69,29 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground mt-2">Manage users and plants</p>
         </div>
 
-        <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs
+          value={selectedPlantTab ? "plant-details" : "users"}
+          onValueChange={(value) => setSelectedPlantTab(value === "plant-details")}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="create-user">Create User</TabsTrigger>
-            <TabsTrigger value="create-plant">Add Plant</TabsTrigger>
+            <TabsTrigger value="plant-details" disabled={!selectedPlantTab}>
+              Plant Details
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">
-            <UsersList key={usersRefresh} />
+            <UsersList key={usersRefresh} onPlantSelected={handlePlantSelected} />
           </TabsContent>
 
           <TabsContent value="create-user" className="space-y-4">
             <CreateUserForm onSuccess={handleUserCreated} />
           </TabsContent>
 
-          <TabsContent value="create-plant" className="space-y-4">
-            <CreatePlantForm />
+          <TabsContent value="plant-details" className="space-y-4">
+            <UsersList key={usersRefresh} showPlantDetailsTab={true} />
           </TabsContent>
         </Tabs>
 

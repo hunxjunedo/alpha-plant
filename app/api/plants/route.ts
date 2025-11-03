@@ -4,10 +4,6 @@ import { verifyToken } from "@/lib/jwt"
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get("token")?.value
-    if (!token || !(await verifyToken(token))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
 
     const { name, userId, planted } = await request.json()
 

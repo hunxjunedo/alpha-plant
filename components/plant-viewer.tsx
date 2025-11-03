@@ -9,9 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { X } from "lucide-react"
 
 interface Picture {
-  id: string
   src: string
-  userId: string
+  uploaded: string
 }
 
 interface Plant {
@@ -129,13 +128,13 @@ export function PlantViewer({ plant: initialPlant, onClose }: PlantViewerProps) 
                 <p className="text-sm font-medium mb-3">Pictures ({displayPlant.pictures.length})</p>
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                   {displayPlant.pictures.map((pic) => (
-                    <div key={pic.id} className="space-y-2">
+                    <div key={pic.uploaded} className="space-y-2">
                       <img
                         src={pic.src || "/placeholder.svg"}
                         alt={`Plant picture ${pic.id}`}
                         className="w-full h-40 object-cover rounded-lg border"
                       />
-                      <p className="text-xs text-muted-foreground">User: {pic.userId}</p>
+                      <p className="text-xs text-muted-foreground"> {new Date(pic.uploaded).toLocaleString()}</p>
                     </div>
                   ))}
                 </div>

@@ -51,6 +51,7 @@ export default function AdminDashboard() {
       const response = await fetch("/api/users")
       if (response.ok) {
         const data = await response.json()
+        console.log(data)
         setUsers(data)
         const plantsMap: Record<string, Plant> = {}
         for (const user of data) {

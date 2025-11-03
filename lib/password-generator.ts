@@ -1,60 +1,7 @@
-import { generateRandomWords } from "random-words"
+import { generate } from "random-words"
 
-const WORD_LIST = [
-  "apple",
-  "beach",
-  "camera",
-  "dance",
-  "eagle",
-  "forest",
-  "guitar",
-  "horizon",
-  "island",
-  "jungle",
-  "kitchen",
-  "lemon",
-  "mountain",
-  "nature",
-  "ocean",
-  "piano",
-  "quiet",
-  "river",
-  "sunset",
-  "thunder",
-  "umbrella",
-  "violin",
-  "whisper",
-  "xenon",
-  "yellow",
-  "zebra",
-  "anchor",
-  "bright",
-  "crystal",
-  "diamond",
-  "energy",
-  "flower",
-  "galaxy",
-  "harmony",
-  "iron",
-  "journey",
-  "knight",
-  "liberty",
-  "marble",
-  "nebula",
-  "orbit",
-  "palace",
-  "quantum",
-  "rhythm",
-  "silver",
-  "temple",
-  "unique",
-  "virtue",
-  "weapon",
-  "wizard",
-  "zenith",
-]
 
 export function generatePassphrase(): string {
-  const randomWords = generateRandomWords({ exactly: 4, maxLength: 8 })
+  const randomWords = generate({ exactly: 4, maxLength: 8, minLength: 4 });
   return randomWords.join("-")
 }

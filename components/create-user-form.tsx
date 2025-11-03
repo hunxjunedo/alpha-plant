@@ -66,7 +66,6 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
       setLoading(false)
     }
   }
-
   return (
     <Card>
       <CardHeader>
@@ -75,7 +74,20 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input type="text" name="id" placeholder="User ID" value={formData.id} onChange={handleChange} required />
+          <Input 
+            type="number" 
+            name="id" 
+            placeholder="User ID" 
+            value={formData.id} 
+            onChange={handleChange} 
+            required 
+            min="0"
+            onKeyPress={(e) => {
+              if (!/[0-9]/.test(e.key)) {
+                e.preventDefault()
+              }
+            }}
+          />
           <Input
             type="text"
             name="fullName"
@@ -84,7 +96,7 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
             onChange={handleChange}
             required
           />
-          <div className="flex gap-2">
+            <div className="flex gap-2">
             <Input
               type="text"
               name="password"
@@ -103,20 +115,26 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
-          </div>
-          <Input
-            type="text"
+            </div>
+            <select
             name="house"
-            placeholder="House/Location"
             value={formData.house}
-            onChange={handleChange}
+            onChange={(e) => handleChange(e as any)}
             required
-          />
-          {error && <p className="text-destructive text-sm">{error}</p>}
-          {success && <p className="text-green-600 text-sm">{success}</p>}
-          <Button type="submit" className="w-full" disabled={loading}>
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+            <option value="">Select House</option>
+            <option value="Rufus">Rufus</option>
+            <option value="Timber">Timber</option>
+            <option value="Sawtooth">Sawtooth</option>
+            <option value="Dirus">Dirus</option>
+            <option value="Arcadian">Arcadian</option>
+            </select>
+            {error && <p className="text-destructive text-sm">{error}</p>}
+            {success && <p className="text-green-600 text-sm">{success}</p>}
+            <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Creating..." : "Create User"}
-          </Button>
+            </Button>
         </form>
       </CardContent>
     </Card>

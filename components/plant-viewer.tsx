@@ -111,13 +111,13 @@ export function PlantViewer({ plant: initialPlant, onClose }: PlantViewerProps) 
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm font-medium">Planted</p>
-              <p className="text-sm text-muted-foreground">{formatDateOnly(displayPlant.planted)}</p>
+              <p className="text-sm text-muted-foreground">{formatDateTime(displayPlant.planted)}</p>
             </div>
 
             {displayPlant.lastProofPicture && (
               <div>
                 <p className="text-sm font-medium">Last Proof Picture</p>
-                <p className="text-sm text-muted-foreground">{formatDateOnly(displayPlant.lastProofPicture)}</p>
+                <p className="text-sm text-muted-foreground">{formatDateTime(displayPlant.lastProofPicture)}</p>
               </div>
             )}
 

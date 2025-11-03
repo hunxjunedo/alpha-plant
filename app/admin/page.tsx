@@ -6,6 +6,7 @@ import { CreateUserForm } from "@/components/create-user-form"
 import { UsersList } from "@/components/users-list"
 import { PlantViewer } from "@/components/plant-viewer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { RotateCw } from "lucide-react"
 
 interface Plant {
   id: string
@@ -22,9 +23,11 @@ interface Plant {
 export default function AdminDashboard() {
   const [authenticated, setAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [usersRefresh, setUsersRefresh] = useState(0)
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null)
   const [activeTab, setActiveTab] = useState("users")
+  const [users, setUsers] = useState<Array<any>>([])
+  const [plants, setPlants] = useState<Record<string, Plant>>({})
+  const [usersLoading, setUsersLoading] = useState(false)
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -42,12 +45,50 @@ export default function AdminDashboard() {
     checkAuth()
   }, [])
 
+  const fetchUsers = async () => {
+    setUsersLoading(true)
+    try {
+      const response = await fetch("/api/users")
+      if (response.ok) {
+        const data = await response.json()
+        setUsers(data)
+        const plantsMap: Record<string, Plant> = {}
+        for (const user of data) {
+          for (const plantId of user.plants) {
+            if (!plantsMap[plantId]) {
+              try {
+                const plantRes = await fetch(`/api/plants/${plantId}`)
+                if (plantRes.ok) {
+                  const plant = await plantRes.json()
+                  plantsMap[plantId] = plant
+                }
+              } catch (err) {
+                console.error("Failed to fetch plant:", plantId)
+              }
+            }
+          }
+        }
+        setPlants(plantsMap)
+      }
+    } catch (err) {
+      console.error("Failed to fetch users:", err)
+    } finally {
+      setUsersLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (authenticated) {
+      fetchUsers()
+    }
+  }, [authenticated])
+
   const handleLoginSuccess = () => {
     setAuthenticated(true)
   }
 
   const handleUserCreated = () => {
-    setUsersRefresh((prev) => prev + 1)
+    fetchUsers()
   }
 
   const handlePlantSelected = (plant: Plant) => {
@@ -99,7 +140,24 @@ export default function AdminDashboard() {
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">
-            <UsersList key={usersRefresh} onPlantSelected={handlePlantSelected} />
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Users List</h2>
+              <button
+                onClick={fetchUsers}
+                disabled={usersLoading}
+                className="p-2 hover:bg-accent rounded-md transition-colors"
+                title="Refresh users"
+              >
+                <RotateCw size={18} className={usersLoading ? "animate-spin" : ""} />
+              </button>
+            </div>
+            <UsersList
+              users={users}
+              plants={plants}
+              loading={usersLoading}
+              onPlantSelected={handlePlantSelected}
+              onUserCreated={handleUserCreated}
+            />
           </TabsContent>
 
           <TabsContent value="create-user" className="space-y-4">

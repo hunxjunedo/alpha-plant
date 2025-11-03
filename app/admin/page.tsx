@@ -4,13 +4,27 @@ import { useState, useEffect } from "react"
 import { AdminLogin } from "@/components/admin-login"
 import { CreateUserForm } from "@/components/create-user-form"
 import { UsersList } from "@/components/users-list"
+import { PlantViewer } from "@/components/plant-viewer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+interface Plant {
+  id: string
+  name: string
+  planted: string
+  lastProofPicture?: string
+  pictures: Array<{
+    id: string
+    src: string
+    userId: string
+  }>
+}
 
 export default function AdminDashboard() {
   const [authenticated, setAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
   const [usersRefresh, setUsersRefresh] = useState(0)
-  const [selectedPlantTab, setSelectedPlantTab] = useState(false)
+  const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null)
+  const [activeTab, setActiveTab] = useState("users")
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -36,8 +50,14 @@ export default function AdminDashboard() {
     setUsersRefresh((prev) => prev + 1)
   }
 
-  const handlePlantSelected = () => {
-    setSelectedPlantTab(true)
+  const handlePlantSelected = (plant: Plant) => {
+    setSelectedPlant(plant)
+    setActiveTab("plant-details")
+  }
+
+  const handleBackFromPlant = () => {
+    setSelectedPlant(null)
+    setActiveTab("users")
   }
 
   const handleLogout = async () => {
@@ -69,15 +89,11 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground mt-2">Manage users and plants</p>
         </div>
 
-        <Tabs
-          value={selectedPlantTab ? "plant-details" : "users"}
-          onValueChange={(value) => setSelectedPlantTab(value === "plant-details")}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="create-user">Create User</TabsTrigger>
-            <TabsTrigger value="plant-details" disabled={!selectedPlantTab}>
+            <TabsTrigger value="plant-details" disabled={!selectedPlant}>
               Plant Details
             </TabsTrigger>
           </TabsList>
@@ -91,7 +107,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="plant-details" className="space-y-4">
-            <UsersList key={usersRefresh} showPlantDetailsTab={true} />
+            {selectedPlant && <PlantViewer plant={selectedPlant} onClose={handleBackFromPlant} />}
           </TabsContent>
         </Tabs>
 

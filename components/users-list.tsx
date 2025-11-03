@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PlantViewer } from "./plant-viewer"
 import { CreatePlantFormModal } from "./create-plant-form-modal"
 
 interface Plant {
@@ -24,16 +23,14 @@ interface User {
 }
 
 interface UsersListProps {
-  onPlantSelected?: () => void
-  showPlantDetailsTab?: boolean
+  onPlantSelected?: (plant: Plant) => void
 }
 
-export function UsersList({ onPlantSelected, showPlantDetailsTab }: UsersListProps) {
+export function UsersList({ onPlantSelected }: UsersListProps) {
   const [users, setUsers] = useState<User[]>([])
   const [plants, setPlants] = useState<Record<string, Plant>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [showPlantForm, setShowPlantForm] = useState(false)
   const [usersRefresh, setUsersRefresh] = useState(0)
@@ -48,7 +45,6 @@ export function UsersList({ onPlantSelected, showPlantDetailsTab }: UsersListPro
       if (response.ok) {
         const data = await response.json()
         setUsers(data)
-        // Fetch plant details for each user's plants
         const plantsMap: Record<string, Plant> = {}
         for (const user of data) {
           for (const plantId of user.plants) {
@@ -77,8 +73,7 @@ export function UsersList({ onPlantSelected, showPlantDetailsTab }: UsersListPro
   }
 
   const handleViewPlant = (plant: Plant) => {
-    setSelectedPlant(plant)
-    onPlantSelected?.()
+    onPlantSelected?.(plant)
   }
 
   const handleAddPlant = (user: User) => {
@@ -90,22 +85,6 @@ export function UsersList({ onPlantSelected, showPlantDetailsTab }: UsersListPro
     setShowPlantForm(false)
     setSelectedUser(null)
     setUsersRefresh((prev) => prev + 1)
-  }
-
-  if (showPlantDetailsTab && selectedPlant) {
-    return (
-      <Card>
-        <CardHeader>
-          <Button variant="ghost" onClick={() => setSelectedPlant(null)}>
-            ← Back to Users
-          </Button>
-          <CardTitle className="mt-4">{selectedPlant.name}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PlantViewer plant={selectedPlant} onClose={() => setSelectedPlant(null)} />
-        </CardContent>
-      </Card>
-    )
   }
 
   if (loading) return <div>Loading users...</div>

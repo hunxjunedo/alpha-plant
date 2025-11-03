@@ -60,6 +60,16 @@ export function PlantViewer({ plant: initialPlant, onClose }: PlantViewerProps) 
 
   const displayPlant = plant || initialPlant
 
+  if (!initialPlant) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-muted-foreground">No plant selected</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <div className="space-y-4">
       {!isModalMode && (

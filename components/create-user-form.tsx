@@ -14,6 +14,7 @@ interface CreateUserFormProps {
 export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
   const [formData, setFormData] = useState({
     id: "",
+    fullName: "",
     password: "",
     house: "",
   })
@@ -44,7 +45,7 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
 
       if (response.ok) {
         setSuccess("User created successfully!")
-        setFormData({ id: "", password: "", house: "" })
+        setFormData({ id: "", fullName: "", password: "", house: "" })
         onSuccess?.()
       } else {
         const data = await response.json()
@@ -66,6 +67,14 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input type="text" name="id" placeholder="User ID" value={formData.id} onChange={handleChange} required />
+          <Input
+            type="text"
+            name="fullName"
+            placeholder="Full Name"
+            value={formData.fullName}
+            onChange={handleChange}
+            required
+          />
           <Input
             type="password"
             name="password"

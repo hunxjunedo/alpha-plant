@@ -20,6 +20,7 @@ export interface Plant {
 export interface User {
   _id?: ObjectId
   id: string
+  fullName: string
   password: string
   created: Date
   house: string

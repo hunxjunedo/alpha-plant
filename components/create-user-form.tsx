@@ -6,6 +6,8 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { RefreshCw } from "lucide-react"
+import { generatePassphrase } from "@/lib/password-generator"
 
 interface CreateUserFormProps {
   onSuccess?: () => void
@@ -15,7 +17,7 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
   const [formData, setFormData] = useState({
     id: "",
     fullName: "",
-    password: "",
+    password: generatePassphrase(),
     house: "",
   })
   const [loading, setLoading] = useState(false)
@@ -27,6 +29,13 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }))
+  }
+
+  const regeneratePassword = () => {
+    setFormData((prev) => ({
+      ...prev,
+      password: generatePassphrase(),
     }))
   }
 
@@ -45,7 +54,7 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
 
       if (response.ok) {
         setSuccess("User created successfully!")
-        setFormData({ id: "", fullName: "", password: "", house: "" })
+        setFormData({ id: "", fullName: "", password: generatePassphrase(), house: "" })
         onSuccess?.()
       } else {
         const data = await response.json()
@@ -75,14 +84,26 @@ export function CreateUserForm({ onSuccess }: CreateUserFormProps) {
             onChange={handleChange}
             required
           />
-          <Input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
+          <div className="flex gap-2">
+            <Input
+              type="text"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={regeneratePassword}
+              title="Generate new password"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
           <Input
             type="text"
             name="house"

@@ -115,6 +115,15 @@ export function PlantViewer({ plant: initialPlant, onClose }: PlantViewerProps) 
               <p className="text-sm text-muted-foreground">{new Date(displayPlant.planted).toLocaleDateString()}</p>
             </div>
 
+            {displayPlant.lastProofPicture && (
+              <div>
+                <p className="text-sm font-medium">Last Proof Picture</p>
+                <p className="text-sm text-muted-foreground">
+                  {new Date(displayPlant.lastProofPicture).toLocaleDateString()}
+                </p>
+              </div>
+            )}
+
             {displayPlant.pictures.length > 0 && (
               <div>
                 <p className="text-sm font-medium mb-3">Pictures ({displayPlant.pictures.length})</p>

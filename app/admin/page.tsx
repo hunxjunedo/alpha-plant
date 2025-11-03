@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import { AdminLogin } from "@/components/admin-login"
 import { CreateUserForm } from "@/components/create-user-form"
+import { CreatePlantForm } from "@/components/create-plant-form"
 import { UsersList } from "@/components/users-list"
-import { PlantViewer } from "@/components/plant-viewer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function AdminDashboard() {
@@ -68,20 +68,20 @@ export default function AdminDashboard() {
         <Tabs defaultValue="users" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="create">Create User</TabsTrigger>
-            <TabsTrigger value="plant">View Plant</TabsTrigger>
+            <TabsTrigger value="create-user">Create User</TabsTrigger>
+            <TabsTrigger value="create-plant">Add Plant</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">
             <UsersList key={usersRefresh} />
           </TabsContent>
 
-          <TabsContent value="create" className="space-y-4">
+          <TabsContent value="create-user" className="space-y-4">
             <CreateUserForm onSuccess={handleUserCreated} />
           </TabsContent>
 
-          <TabsContent value="plant" className="space-y-4">
-            <PlantViewer />
+          <TabsContent value="create-plant" className="space-y-4">
+            <CreatePlantForm />
           </TabsContent>
         </Tabs>
 

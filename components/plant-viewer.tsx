@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { X } from "lucide-react"
 
 interface Picture {
   id: string
@@ -21,11 +22,18 @@ interface Plant {
   pictures: Picture[]
 }
 
-export function PlantViewer() {
+interface PlantViewerProps {
+  plant?: Plant
+  onClose?: () => void
+}
+
+export function PlantViewer({ plant: initialPlant, onClose }: PlantViewerProps) {
   const [plantId, setPlantId] = useState("")
-  const [plant, setPlant] = useState<Plant | null>(null)
+  const [plant, setPlant] = useState<Plant | null>(initialPlant || null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  const isModalMode = !!initialPlant
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,47 +58,58 @@ export function PlantViewer() {
     }
   }
 
+  const displayPlant = plant || initialPlant
+
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>View Plant</CardTitle>
-          <CardDescription>Search for a plant by ID</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <Input
-              type="text"
-              placeholder="Enter Plant ID"
-              value={plantId}
-              onChange={(e) => setPlantId(e.target.value)}
-              disabled={loading}
-            />
-            <Button type="submit" disabled={loading}>
-              {loading ? "Searching..." : "Search"}
-            </Button>
-          </form>
-          {error && <p className="text-destructive text-sm mt-2">{error}</p>}
-        </CardContent>
-      </Card>
-
-      {plant && (
+      {!isModalMode && (
         <Card>
           <CardHeader>
-            <CardTitle>{plant.name}</CardTitle>
-            <CardDescription>Plant ID: {plant.id}</CardDescription>
+            <CardTitle>View Plant</CardTitle>
+            <CardDescription>Search for a plant by ID</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="Enter Plant ID"
+                value={plantId}
+                onChange={(e) => setPlantId(e.target.value)}
+                disabled={loading}
+              />
+              <Button type="submit" disabled={loading}>
+                {loading ? "Searching..." : "Search"}
+              </Button>
+            </form>
+            {error && <p className="text-destructive text-sm mt-2">{error}</p>}
+          </CardContent>
+        </Card>
+      )}
+
+      {displayPlant && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle>{displayPlant.name}</CardTitle>
+              <CardDescription>Plant ID: {displayPlant.id}</CardDescription>
+            </div>
+            {isModalMode && onClose && (
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm font-medium">Planted</p>
-              <p className="text-sm text-muted-foreground">{new Date(plant.planted).toLocaleDateString()}</p>
+              <p className="text-sm text-muted-foreground">{new Date(displayPlant.planted).toLocaleDateString()}</p>
             </div>
 
-            {plant.pictures.length > 0 && (
+            {displayPlant.pictures.length > 0 && (
               <div>
-                <p className="text-sm font-medium mb-3">Pictures ({plant.pictures.length})</p>
+                <p className="text-sm font-medium mb-3">Pictures ({displayPlant.pictures.length})</p>
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                  {plant.pictures.map((pic) => (
+                  {displayPlant.pictures.map((pic) => (
                     <div key={pic.id} className="space-y-2">
                       <img
                         src={pic.src || "/placeholder.svg"}

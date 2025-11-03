@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CreatePlantFormModal } from "./create-plant-form-modal"
+import { formatDateOnly } from "@/lib/date-formatter"
 
 interface Plant {
   id: string
@@ -94,7 +95,7 @@ export function UsersList({ users, plants, loading, onPlantSelected, onUserCreat
                     <TableCell className="font-medium">{user.id}</TableCell>
                     <TableCell>{user.fullName}</TableCell>
                     <TableCell>{user.house}</TableCell>
-                    <TableCell>{new Date(user.created).toLocaleDateString()}</TableCell>
+                    <TableCell>{formatDateOnly(user.created)}</TableCell>
                     <TableCell>
                       {user.plants.length > 0 ? (
                         <div className="flex flex-wrap gap-2">

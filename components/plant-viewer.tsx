@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { formatDateOnly, formatDateTime } from "@/lib/date-formatter"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -111,15 +111,13 @@ export function PlantViewer({ plant: initialPlant, onClose }: PlantViewerProps) 
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm font-medium">Planted</p>
-              <p className="text-sm text-muted-foreground">{new Date(displayPlant.planted).toLocaleDateString()}</p>
+              <p className="text-sm text-muted-foreground">{formatDateOnly(displayPlant.planted)}</p>
             </div>
 
             {displayPlant.lastProofPicture && (
               <div>
                 <p className="text-sm font-medium">Last Proof Picture</p>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(displayPlant.lastProofPicture).toLocaleDateString()}
-                </p>
+                <p className="text-sm text-muted-foreground">{formatDateOnly(displayPlant.lastProofPicture)}</p>
               </div>
             )}
 
@@ -134,7 +132,7 @@ export function PlantViewer({ plant: initialPlant, onClose }: PlantViewerProps) 
                         alt={`Plant picture ${pic.id}`}
                         className="w-full h-40 object-cover rounded-lg border"
                       />
-                      <p className="text-xs text-muted-foreground"> {new Date(pic.uploaded).toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground"> {formatDateTime(pic.uploaded)}</p>
                     </div>
                   ))}
                 </div>

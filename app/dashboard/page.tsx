@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, Camera, Leaf, LogOut } from "lucide-react"
+import { Calendar, Camera, Leaf, Loader2, LogOut, Plus } from "lucide-react"
 import { formatDate, formatDateTime } from "@/lib/date-formatter"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -26,6 +26,7 @@ interface Plant {
 export default function UserDashboard() {
   const [plants, setPlants] = useState<Plant[]>([])
   const [activePic, setActivePic] = useState<number>(0)
+  const [uploading, setUploading] = useState(false) 
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
@@ -60,6 +61,20 @@ export default function UserDashboard() {
 
   const rotatePictureList = (length: number) => {
     setActivePic((pic) => (pic == length - 1 ? 0 : pic + 1))
+  }
+
+
+  const handleUploadPicture = async (plant: Plant) => {
+    const mockSrc = `/placeholder.svg?height=400&width=400&query=plant growth photo ${plant.pictures.length + 1}`
+
+    setUploading(true)
+   
+      const response = await fetch(`/api/plants/${plant.id}/pictures`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ src: mockSrc }),
+      })
+
   }
 
   const handleLogout = async () => {
@@ -134,6 +149,25 @@ export default function UserDashboard() {
                     <Calendar size={14} />
                     Planted on {formatDate(plant.planted)}
                   </CardDescription>
+
+                  <Badge>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleUploadPicture}
+                                    disabled={uploading}
+                                    className="h-8 gap-1 bg-transparent"
+                                  >
+                                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                                    Add Photo
+                                  </Button>
+                                  {/* {isModalMode && onClose && (
+                                    <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  )} */}
+                              
+                  </Badge>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4 mt-2">

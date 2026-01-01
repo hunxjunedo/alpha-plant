@@ -14,7 +14,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const userToken = request.cookies.get("user_token")?.value
     if (!userToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const payload = await verifyToken(userToken)
+    const payload = await verifyToken(userToken);
     if (!payload || payload.role !== "user") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const formData = await request.formData()

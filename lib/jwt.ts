@@ -1,6 +1,6 @@
 import { jwtVerify, SignJWT } from "jose"
 
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "your-secret-key-change-in-production")
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET)
 
 export async function signToken(payload: Record<string, unknown>): Promise<string> {
   return new SignJWT(payload).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime("24h").sign(SECRET)

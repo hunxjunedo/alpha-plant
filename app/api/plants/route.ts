@@ -1,8 +1,20 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/mongodb"
+import { verifyToken } from "@/lib/jwt"
 
 export async function POST(request: NextRequest) {
   try {
+
+      const token = request.cookies.get("admin_token")?.value;
+      if(!token){
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      const payload = await verifyToken(token);
+      if (!payload || payload.role !== 'admin'){
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      
+
     const { name, userId, planted } = await request.json()
 
     if (!name || !userId) {
@@ -19,18 +31,9 @@ export async function POST(request: NextRequest) {
     const plantCount = userExists.plants?.length || 0
     const plantId = `plant_${plantCount + 1}_${userId}`
 
-    // Ensure uniqueness if the user somehow has multiple plant_X IDs
-    let finalPlantId = plantId
-    let counter = 1
-    let exists = await db.collection("plants").findOne({ id: finalPlantId })
-    while (exists) {
-      finalPlantId = `plant_${plantCount + counter + 1}_${userId}`
-      exists = await db.collection("plants").findOne({ id: finalPlantId })
-      counter++
-    }
-
+   
     const newPlant = {
-      id: finalPlantId,
+      id: plantId,
       name,
       userId,
       planted: planted ? new Date(planted) : new Date(),
@@ -40,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     const plantResult = await db.collection("plants").insertOne(newPlant)
 
-    await db.collection("users").updateOne({ id: userId }, { $push: { plants: finalPlantId } })
+    await db.collection("users").updateOne({ id: userId }, { $push: { plants: plantId } })
 
     return NextResponse.json({ _id: plantResult.insertedId, ...newPlant }, { status: 201 })
   } catch (error) {

@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, Camera, Leaf, Loader2, LogOut, Plus } from "lucide-react"
+import { Calendar, Camera, Leaf, Loader2, LogOut } from "lucide-react"
 import { formatDate, formatDateTime } from "@/lib/date-formatter"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { toast } from "sonner"
+import { handleLogout } from "@/lib/auth" // Import handleLogout
 
 interface Picture {
   src: string
@@ -25,8 +27,8 @@ interface Plant {
 
 export default function UserDashboard() {
   const [plants, setPlants] = useState<Plant[]>([])
-  const [activePic, setActivePic] = useState<number>(0)
-  const [uploading, setUploading] = useState(false) 
+  const [activePic, setActivePic] = useState<Record<string, number>>({})
+  const [uploading, setUploading] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
@@ -48,6 +50,11 @@ export default function UserDashboard() {
         if (plantsRes.ok) {
           const plantsData = await plantsRes.json()
           setPlants(plantsData)
+          const initialActive: Record<string, number> = {}
+          plantsData.forEach((p: Plant) => {
+            initialActive[p.id] = (p.pictures?.length || 1) - 1
+          })
+          setActivePic(initialActive)
         }
       } catch (err) {
         console.error("Dashboard error:", err)
@@ -59,27 +66,59 @@ export default function UserDashboard() {
     checkAuth()
   }, [router])
 
-  const rotatePictureList = (length: number) => {
-    setActivePic((pic) => (pic == length - 1 ? 0 : pic + 1))
+  const rotatePictureList = (plantId: string, length: number) => {
+    setActivePic((prev) => ({
+      ...prev,
+      [plantId]: (prev[plantId] || 0) === length - 1 ? 0 : (prev[plantId] || 0) + 1,
+    }))
   }
 
+  const handleUploadPicture = async (plantId: string, file: File) => {
+    if (!file) return
 
-  const handleUploadPicture = async (plant: Plant) => {
-    const mockSrc = `/placeholder.svg?height=400&width=400&query=plant growth photo ${plant.pictures.length + 1}`
+    setUploading(plantId)
+    const formData = new FormData()
+    formData.append("file", file)
 
-    setUploading(true)
-   
-      const response = await fetch(`/api/plants/${plant.id}/pictures`, {
+    try {
+      const response = await fetch(`/api/plants/${plantId}/pictures`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ src: mockSrc }),
+        body: formData,
       })
 
-  }
+      const data = await response.json()
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" })
-    router.push("/login")
+      if (!response.ok) {
+        toast.error(data.error || "Upload failed")
+        return
+      }
+
+      toast.success("Picture uploaded successfully!")
+
+      setPlants((prev) =>
+        prev.map((p) => {
+          if (p.id === plantId) {
+            const updatedPics = [...(p.pictures || []), data]
+            return {
+              ...p,
+              pictures: updatedPics,
+              lastProofPicture: data.uploaded,
+            }
+          }
+          return p
+        }),
+      )
+
+      setActivePic((prev) => ({
+        ...prev,
+        [plantId]: plants.find((p) => p.id === plantId)?.pictures.length || 0,
+      }))
+    } catch (err) {
+      toast.error("An error occurred during upload")
+      console.error(err)
+    } finally {
+      setUploading(null)
+    }
   }
 
   if (loading) {
@@ -122,16 +161,16 @@ export default function UserDashboard() {
                 className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-shadow duration-300"
               >
                 <div className="relative h-56 bg-zinc-200 group">
-                  {plant.lastProofPicture ? (
+                  {plant.pictures && plant.pictures.length > 0 ? (
                     <>
                       <img
-                        src={plant.pictures[activePic].src || "/placeholder.svg"}
+                        src={plant.pictures[activePic[plant.id] || 0]?.src || "/placeholder.svg"}
                         alt={plant.name}
-                        onClick={() => rotatePictureList(plant.pictures.length)}
+                        onClick={() => rotatePictureList(plant.id, plant.pictures.length)}
                         className="w-full h-full object-cover cursor-pointer"
                       />
                       <div className="absolute inset-x-0 bottom-0 bg-black/40 backdrop-blur-sm p-2 text-[10px] text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                        Photo taken: {formatDateTime(plant.pictures[activePic].uploaded)}
+                        Photo taken: {formatDateTime(plant.pictures[activePic[plant.id] || 0]?.uploaded)}
                       </div>
                     </>
                   ) : (
@@ -150,24 +189,34 @@ export default function UserDashboard() {
                     Planted on {formatDate(plant.planted)}
                   </CardDescription>
 
-                  <Badge>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleUploadPicture}
-                                    disabled={uploading}
-                                    className="h-8 gap-1 bg-transparent"
-                                  >
-                                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                                    Add Photo
-                                  </Button>
-                                  {/* {isModalMode && onClose && (
-                                    <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  )} */}
-                              
-                  </Badge>
+                  <div className="mt-2">
+                    <input
+                      type="file"
+                      id={`file-${plant.id}`}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) handleUploadPicture(plant.id, file)
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      disabled={uploading === plant.id}
+                      className="h-8 gap-1 bg-transparent cursor-pointer"
+                    >
+                      <label htmlFor={`file-${plant.id}`}>
+                        {uploading === plant.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Camera className="h-4 w-4" />
+                        )}
+                        {uploading === plant.id ? "Uploading..." : "Add Photo"}
+                      </label>
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4 mt-2">
@@ -188,10 +237,12 @@ export default function UserDashboard() {
                         <Tooltip key={index}>
                           <TooltipTrigger asChild>
                             <div
-                              onClick={() => setActivePic(index)}
+                              onClick={() => setActivePic((prev) => ({ ...prev, [plant.id]: index }))}
                               className={cn(
                                 "flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border transition-all cursor-pointer hover:scale-105",
-                                activePic === index ? "border-green-500 ring-2 ring-green-500/20" : "border-zinc-200",
+                                activePic[plant.id] === index
+                                  ? "border-green-500 ring-2 ring-green-500/20"
+                                  : "border-zinc-200",
                               )}
                             >
                               <img

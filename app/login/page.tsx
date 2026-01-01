@@ -7,13 +7,14 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Leaf } from "lucide-react"
+import { Eye, Leaf } from "lucide-react"
 
 export default function UserLoginPage() {
   const [id, setId] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,7 +50,7 @@ export default function UserLoginPage() {
             <Leaf size={32} />
           </div>
           <h1 className="text-3xl font-bold text-zinc-900">Plant Parent Login</h1>
-          <p className="text-zinc-600 mt-2">Access your garden dashboard</p>
+          <p className="text-zinc-600 mt-2">Access your Alpha Garden dashboard</p>
         </div>
 
         <Card className="border-none shadow-xl shadow-green-900/5">
@@ -70,18 +71,22 @@ export default function UserLoginPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-700">Password</label>
-                <Input
-                  type="password"
+               <div className="flex flex-row gap-2">
+                 <Input
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="bg-zinc-50 border-zinc-200 focus:ring-green-500 focus:border-green-500"
                 />
+                <Button onClick={()=>(setShowPassword(!showPassword))} className="bg-gray-200 hover:bg-gray-400 cursor-pointer " type="button">
+                  <Eye color="black" />
+                </Button>
+               </div>
               </div>
               {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
-              <Button
-                type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-6"
+              <Button 
+                className="w-full cursor-pointer bg-green-600 hover:bg-green-700 text-white font-semibold py-6"
                 disabled={loading}
               >
                 {loading ? "Signing in..." : "Login to Dashboard"}

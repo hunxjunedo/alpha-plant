@@ -5,6 +5,16 @@ import { verifyToken } from "@/lib/jwt"
 export async function POST(request: NextRequest) {
   try {
 
+      const token = request.cookies.get("admin_token")?.value;
+      if(!token){
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      const payload = await verifyToken(token);
+      if (!payload || payload.role !== 'admin'){
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      
+
     const { name, userId, planted } = await request.json()
 
     if (!name || !userId) {
@@ -18,7 +28,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    const plantId = `plant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const plantCount = userExists.plants?.length || 0
+    const plantId = `plant_${plantCount + 1}_${userId}`
+
+   
     const newPlant = {
       id: plantId,
       name,

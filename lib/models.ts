@@ -5,6 +5,7 @@ export interface Picture {
   plantId: string
   userId: string
   src: string
+  uploaded: Date // added uploaded date to Picture interface
 }
 
 export interface Plant {
@@ -13,7 +14,7 @@ export interface Plant {
   name: string
   userId: string
   planted: Date
-  lastProofPicture?: string
+  lastProofPicture?: Date // changed lastProofPicture from string to Date
   pictures: Picture[]
 }
 

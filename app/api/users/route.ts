@@ -1,8 +1,19 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/mongodb"
+import { verifyToken } from "@/lib/jwt";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const token = request.cookies.get("admin_token");
+    if (!token){
+      return NextResponse.json({ error: "not authorized" }, { status: 401 })
+    }
+
+    const payload = await verifyToken(token.value);
+    if (!payload || payload.role !== 'admin'){
+      return NextResponse.json({ error: "not authorized" }, { status: 401 })
+    }
+    
     const db = await connectDB()
     const users = await db.collection("users").find({}, { projection: { password: 0 } }).toArray()
     return NextResponse.json(users)

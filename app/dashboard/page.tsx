@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, Camera, Leaf, LogOut } from "lucide-react"
 import { formatDate, formatDateTime } from "@/lib/date-formatter"
+import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface Picture {
   src: string
@@ -56,8 +58,8 @@ export default function UserDashboard() {
     checkAuth()
   }, [router])
 
-  const rotatePictureList = (length : number) => {
-    setActivePic(pic => (pic == length - 1 ? 0 : pic + 1) )
+  const rotatePictureList = (length: number) => {
+    setActivePic((pic) => (pic == length - 1 ? 0 : pic + 1))
   }
 
   const handleLogout = async () => {
@@ -98,68 +100,82 @@ export default function UserDashboard() {
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl m-6 font-bold">Plants</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {plants.map((plant) => (
-            <Card
-              key={plant.id}
-              className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="relative h-56 bg-zinc-200">
-                {plant.lastProofPicture ? (
-                    <img
-                    src={plant.pictures[activePic].src}
-                    alt={plant.name}
-                    onClick={()=>(rotatePictureList(plant.pictures.length))}
-                    className="w-full h-full object-cover"
-                  />
-        
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-zinc-400">
-                    <Leaf size={64} className="opacity-20" />
-                  </div>
-                )}
-                <Badge className="absolute top-4 right-4 bg-white/90 backdrop-blur text-zinc-900 border-none px-3 py-1 text-xs font-bold shadow-sm">
-                  {plant.pictures.length} PHOTOS
-                </Badge>
-              </div>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl font-bold flex items-center justify-between">
-                  {plant.name}
-              
-                </CardTitle>
-                <CardDescription className="flex items-center gap-1.5 text-zinc-500">
-                  <Calendar size={14} />
-                  Planted on {formatDate(plant.planted)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 mt-2">
-                  <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg border border-zinc-100">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                        <Camera size={16} />
+          <TooltipProvider delayDuration={0}>
+            {plants.map((plant) => (
+              <Card
+                key={plant.id}
+                className="overflow-hidden border-none shadow-lg hover:shadow-xl transition-shadow duration-300"
+              >
+                <div className="relative h-56 bg-zinc-200 group">
+                  {plant.lastProofPicture ? (
+                    <>
+                      <img
+                        src={plant.pictures[activePic].src || "/placeholder.svg"}
+                        alt={plant.name}
+                        onClick={() => rotatePictureList(plant.pictures.length)}
+                        className="w-full h-full object-cover cursor-pointer"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 bg-black/40 backdrop-blur-sm p-2 text-[10px] text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                        Photo taken: {formatDateTime(plant.pictures[activePic].uploaded)}
                       </div>
-                      <div className="text-xs font-medium text-zinc-700">Latest Photo</div>
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-zinc-400">
+                      <Leaf size={64} className="opacity-20" />
                     </div>
-                    <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-tight">
-                      {plant.lastProofPicture ? formatDateTime(plant.lastProofPicture) : "No photos yet"}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {plant.pictures.map((pic, index) => (
-                      <div
-                        key={index}
-                        onClick={()=>(setActivePic(index))}
-                        className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-zinc-200 shadow-sm transition-transform hover:scale-110"
-                      >
-                        <img src={pic.src || "/placeholder.svg"} alt="Plant" className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
+                  )}
+                  <Badge className="absolute top-4 right-4 bg-white/90 backdrop-blur text-zinc-900 border-none px-3 py-1 text-xs font-bold shadow-sm">
+                    {plant.pictures.length} PHOTOS
+                  </Badge>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xl font-bold flex items-center justify-between">{plant.name}</CardTitle>
+                  <CardDescription className="flex items-center gap-1.5 text-zinc-500">
+                    <Calendar size={14} />
+                    Planted on {formatDate(plant.planted)}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4 mt-2">
+                    <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg border border-zinc-100">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                          <Camera size={16} />
+                        </div>
+                        <div className="text-xs font-medium text-zinc-700">Latest Photo</div>
+                      </div>
+                      <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-tight">
+                        {plant.lastProofPicture ? formatDateTime(plant.lastProofPicture) : "No photos yet"}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                      {plant.pictures.map((pic, index) => (
+                        <Tooltip key={index}>
+                          <TooltipTrigger asChild>
+                            <div
+                              onClick={() => setActivePic(index)}
+                              className={cn(
+                                "flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border transition-all cursor-pointer hover:scale-105",
+                                activePic === index ? "border-green-500 ring-2 ring-green-500/20" : "border-zinc-200",
+                              )}
+                            >
+                              <img
+                                src={pic.src || "/placeholder.svg"}
+                                alt="Plant thumbnail"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">{formatDateTime(pic.uploaded)}</TooltipContent>
+                        </Tooltip>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TooltipProvider>
 
           {plants.length === 0 && (
             <div className="col-span-full py-20 text-center bg-white rounded-3xl border border-dashed border-zinc-200">

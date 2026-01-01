@@ -31,9 +31,17 @@ interface UsersListProps {
   loading: boolean
   onPlantSelected?: (plant: Plant) => void
   onUserCreated?: () => void
+  onPlantCreatedOptimistic?: (userId: string, newPlant: Plant) => void // Added optimistic update callback
 }
 
-export function UsersList({ users, plants, loading, onPlantSelected, onUserCreated }: UsersListProps) {
+export function UsersList({
+  users,
+  plants,
+  loading,
+  onPlantSelected,
+  onUserCreated,
+  onPlantCreatedOptimistic,
+}: UsersListProps) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [showPlantForm, setShowPlantForm] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -53,11 +61,18 @@ export function UsersList({ users, plants, loading, onPlantSelected, onUserCreat
     setShowPlantForm(true)
   }
 
-  const handlePlantCreated = useCallback(() => {
-    setShowPlantForm(false)
-    setSelectedUser(null)
-    onUserCreated?.()
-  }, [onUserCreated])
+  const handlePlantCreated = useCallback(
+    (newPlant: Plant) => {
+      setShowPlantForm(false)
+      setSelectedUser(null)
+      if (onPlantCreatedOptimistic && selectedUser) {
+        onPlantCreatedOptimistic(selectedUser.id, newPlant)
+      } else {
+        onUserCreated?.()
+      }
+    },
+    [onUserCreated, onPlantCreatedOptimistic, selectedUser],
+  )
 
   if (loading) return <div>Loading users...</div>
 

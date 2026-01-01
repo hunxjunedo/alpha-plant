@@ -16,7 +16,7 @@ interface User {
 
 interface CreatePlantFormModalProps {
   user: User
-  onSuccess?: () => void
+  onSuccess?: (newPlant: any) => void // Updated signature to pass the new plant back
   onClose?: () => void
 }
 
@@ -58,10 +58,11 @@ export function CreatePlantFormModal({ user, onSuccess, onClose }: CreatePlantFo
       })
 
       if (response.ok) {
+        const newPlantData = await response.json() // Get the created plant data
         setSuccess("Plant created successfully!")
         setFormData({ name: "", planted: new Date().toISOString().split("T")[0] })
         setTimeout(() => {
-          onSuccess?.()
+          onSuccess?.(newPlantData) // Pass the new plant back for optimistic update
         }, 500)
       } else {
         const data = await response.json()

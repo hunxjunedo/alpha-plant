@@ -1,10 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/mongodb"
-import { verifyToken } from "@/lib/jwt"
 
 export async function POST(request: NextRequest) {
   try {
-
     const { name, userId, planted } = await request.json()
 
     if (!name || !userId) {
@@ -18,9 +16,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    const plantId = `plant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const plantCount = userExists.plants?.length || 0
+    const plantId = `plant_${plantCount + 1}_${userId}`
+
+    // Ensure uniqueness if the user somehow has multiple plant_X IDs
+    let finalPlantId = plantId
+    let counter = 1
+    let exists = await db.collection("plants").findOne({ id: finalPlantId })
+    while (exists) {
+      finalPlantId = `plant_${plantCount + counter + 1}_${userId}`
+      exists = await db.collection("plants").findOne({ id: finalPlantId })
+      counter++
+    }
+
     const newPlant = {
-      id: plantId,
+      id: finalPlantId,
       name,
       userId,
       planted: planted ? new Date(planted) : new Date(),
@@ -30,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     const plantResult = await db.collection("plants").insertOne(newPlant)
 
-    await db.collection("users").updateOne({ id: userId }, { $push: { plants: plantId } })
+    await db.collection("users").updateOne({ id: userId }, { $push: { plants: finalPlantId } })
 
     return NextResponse.json({ _id: plantResult.insertedId, ...newPlant }, { status: 201 })
   } catch (error) {

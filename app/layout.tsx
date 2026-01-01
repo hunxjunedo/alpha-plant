@@ -8,7 +8,8 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'Alpha plantation',
-  description: 'manage plants and users'
+  description: 'manage plants and users',
+    generator: 'v0.app'
 }
 
 export default function RootLayout({

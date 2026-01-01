@@ -17,3 +17,5 @@ export function formatDateOnly(date: string | Date): string {
     day: "numeric",
   })
 }
+
+export const formatDate = formatDateOnly

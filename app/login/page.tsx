@@ -1,0 +1,95 @@
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Leaf } from "lucide-react"
+
+export default function UserLoginPage() {
+  const [id, setId] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const router = useRouter()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+
+    try {
+      const response = await fetch("/api/auth/user/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, password }),
+      })
+
+      if (response.ok) {
+        router.push("/dashboard")
+      } else {
+        const data = await response.json()
+        setError(data.error || "Invalid credentials")
+      }
+    } catch (err) {
+      setError("Login failed")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-4">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
+            <Leaf size={32} />
+          </div>
+          <h1 className="text-3xl font-bold text-zinc-900">Plant Parent Login</h1>
+          <p className="text-zinc-600 mt-2">Access your garden dashboard</p>
+        </div>
+
+        <Card className="border-none shadow-xl shadow-green-900/5">
+          <CardHeader className="pb-4">
+            <CardTitle>Welcome back</CardTitle>
+            <CardDescription>Enter your ID and password to continue</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-700">User ID</label>
+                <Input
+                  placeholder="Your unique ID"
+                  value={id}
+                  onChange={(e) => setId(e.target.value)}
+                  className="bg-zinc-50 border-zinc-200 focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-700">Password</label>
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-zinc-50 border-zinc-200 focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+              {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+              <Button
+                type="submit"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-6"
+                disabled={loading}
+              >
+                {loading ? "Signing in..." : "Login to Dashboard"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}

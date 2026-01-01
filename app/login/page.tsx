@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Eye, Leaf } from "lucide-react"
+import { Eye, EyeClosed, Leaf } from "lucide-react"
 
 export default function UserLoginPage() {
   const [id, setId] = useState("")
@@ -80,7 +80,9 @@ export default function UserLoginPage() {
                   className="bg-zinc-50 border-zinc-200 focus:ring-green-500 focus:border-green-500"
                 />
                 <Button onClick={()=>(setShowPassword(!showPassword))} className="bg-gray-200 hover:bg-gray-400 cursor-pointer " type="button">
-                  <Eye color="black" />
+                  {
+                    !showPassword ? <EyeClosed color="black" /> : <Eye color="black"  />
+                  }
                 </Button>
                </div>
               </div>

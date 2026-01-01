@@ -6,12 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, Camera, Leaf, LogOut } from "lucide-react"
-import { formatDate } from "@/lib/date-formatter"
+import { formatDate, formatDateTime } from "@/lib/date-formatter"
 
 interface Picture {
-  id: string
   src: string
-  userId: string
+  uploaded: string
 }
 
 interface Plant {
@@ -24,6 +23,7 @@ interface Plant {
 
 export default function UserDashboard() {
   const [plants, setPlants] = useState<Plant[]>([])
+  const [activePic, setActivePic] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
@@ -55,6 +55,10 @@ export default function UserDashboard() {
 
     checkAuth()
   }, [router])
+
+  const rotatePictureList = (length : number) => {
+    setActivePic(pic => (pic == length - 1 ? 0 : pic + 1) )
+  }
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })
@@ -92,6 +96,7 @@ export default function UserDashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl m-6 font-bold">Plants</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {plants.map((plant) => (
             <Card
@@ -100,11 +105,13 @@ export default function UserDashboard() {
             >
               <div className="relative h-56 bg-zinc-200">
                 {plant.lastProofPicture ? (
-                  <img
-                    src={plant.lastProofPicture || "/placeholder.svg"}
+                    <img
+                    src={plant.pictures[activePic].src}
                     alt={plant.name}
+                    onClick={()=>(rotatePictureList(plant.pictures.length))}
                     className="w-full h-full object-cover"
                   />
+        
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-zinc-400">
                     <Leaf size={64} className="opacity-20" />
@@ -117,12 +124,7 @@ export default function UserDashboard() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl font-bold flex items-center justify-between">
                   {plant.name}
-                  <Badge
-                    variant="secondary"
-                    className="bg-green-100 text-green-700 hover:bg-green-100 text-[10px] uppercase tracking-wider"
-                  >
-                    Healthy
-                  </Badge>
+              
                 </CardTitle>
                 <CardDescription className="flex items-center gap-1.5 text-zinc-500">
                   <Calendar size={14} />
@@ -139,14 +141,15 @@ export default function UserDashboard() {
                       <div className="text-xs font-medium text-zinc-700">Latest Photo</div>
                     </div>
                     <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-tight">
-                      {plant.lastProofPicture ? "2 days ago" : "No photos yet"}
+                      {plant.lastProofPicture ? formatDateTime(plant.lastProofPicture) : "No photos yet"}
                     </div>
                   </div>
 
                   <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {plant.pictures.map((pic) => (
+                    {plant.pictures.map((pic, index) => (
                       <div
-                        key={pic.id}
+                        key={index}
+                        onClick={()=>(setActivePic(index))}
                         className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-zinc-200 shadow-sm transition-transform hover:scale-110"
                       >
                         <img src={pic.src || "/placeholder.svg"} alt="Plant" className="w-full h-full object-cover" />
@@ -165,7 +168,7 @@ export default function UserDashboard() {
               </div>
               <h3 className="text-xl font-bold text-zinc-900">Your garden is empty</h3>
               <p className="text-zinc-500 mt-1 max-w-xs mx-auto">
-                Ask your administrator to add some plants to your account to get started!
+                Ask the administrator to add some plants to your account to get started!
               </p>
             </div>
           )}

@@ -9,8 +9,7 @@ import { Calendar, Camera, Leaf, Loader2, LogOut } from "lucide-react"
 import { formatDate, formatDateTime } from "@/lib/date-formatter"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { toast } from "sonner"
-import { handleLogout } from "@/lib/auth" // Import handleLogout
+import { toast, Toaster } from "sonner"
 
 interface Picture {
   src: string
@@ -71,6 +70,11 @@ export default function UserDashboard() {
       ...prev,
       [plantId]: (prev[plantId] || 0) === length - 1 ? 0 : (prev[plantId] || 0) + 1,
     }))
+  }
+
+    const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" })
+    router.push("/login")
   }
 
   const handleUploadPicture = async (plantId: string, file: File) => {
@@ -134,6 +138,7 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
+      <Toaster />
       <header className="bg-white border-b border-zinc-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -141,8 +146,8 @@ export default function UserDashboard() {
               <Leaf size={24} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-zinc-900 leading-tight">My Garden</h1>
-              <p className="text-xs text-zinc-500 font-medium">Happy planting, {user?.fullName}</p>
+              <h1 className="text-xl font-bold text-zinc-900 leading-tight">Alpha Garden</h1>
+              <p className="text-xs text-zinc-500 font-medium">Happy planting, <span className="font-bold">{user?.fullName}</span></p>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={handleLogout} className="text-zinc-500 hover:text-red-600">
@@ -194,7 +199,7 @@ export default function UserDashboard() {
                       type="file"
                       id={`file-${plant.id}`}
                       className="hidden"
-                      accept="image/*"
+                      accept="image/jpeg"
                       onChange={(e) => {
                         const file = e.target.files?.[0]
                         if (file) handleUploadPicture(plant.id, file)

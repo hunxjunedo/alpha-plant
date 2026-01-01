@@ -6,7 +6,8 @@ import { CreateUserForm } from "@/components/create-user-form"
 import { UsersList } from "@/components/users-list"
 import { PlantViewer } from "@/components/plant-viewer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { RotateCw } from "lucide-react"
+import { Leaf, LogOut, RotateCw } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 interface Plant {
   id: string
@@ -102,7 +103,7 @@ export default function AdminDashboard() {
     setActiveTab("users")
   }
 
-  const handleLogout = async () => {
+   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" })
       setAuthenticated(false)
@@ -125,6 +126,21 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+          <header className="bg-white border-b border-zinc-200 sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center text-white">
+              <Leaf size={24} />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-zinc-900 leading-tight">Alpha Garden</h1>
+            </div>
+          </div>
+          <Button variant="ghost" size="icon" onClick={handleLogout} className="text-zinc-500 hover:text-red-600">
+            <LogOut size={20} />
+          </Button>
+        </div>
+      </header>
       <div className="container mx-auto py-8 px-4">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
@@ -170,9 +186,7 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
 
-        <button onClick={handleLogout} className="mt-8 text-muted-foreground hover:text-foreground text-sm">
-          Logout
-        </button>
+ 
       </div>
     </div>
   )

@@ -5,14 +5,12 @@ import { verifyToken } from "@/lib/jwt"
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Check for either admin or user token
-    const adminToken = request.cookies.get("admin_token")?.value
     const userToken = request.cookies.get("user_token")?.value
-    const token = adminToken || userToken
 
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!userToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const payload = await verifyToken(token)
-    if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const payload = await verifyToken(userToken)
+    if (!payload || payload.role !== "user") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const { src } = await request.json()
     if (!src) return NextResponse.json({ error: "Missing image source" }, { status: 400 })
@@ -24,17 +22,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     if (!plant) return NextResponse.json({ error: "Plant not found" }, { status: 404 })
 
     // If it's a user, ensure they own the plant
-    if (payload.role === "user" && plant.userId !== payload.userId) {
+    if (plant.userId !== payload.userId) {
       return NextResponse.json({ error: "Unauthorized access to plant" }, { status: 403 })
     }
 
     const now = new Date()
-    const pictureId = `pic_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`
 
     const newPicture = {
-      id: pictureId,
-      plantId,
-      userId: plant.userId,
       src,
       uploaded: now,
     }

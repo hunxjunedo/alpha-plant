@@ -31,6 +31,7 @@ export default function AdminDashboard() {
   const [plants, setPlants] = useState<Record<string, Plant>>({})
   const [usersLoading, setUsersLoading] = useState(false)
   const [seeds, setSeeds] = useState<Array<any>>([])
+  const [seedsLoading, setSeedsLoading] = useState(false)
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -82,6 +83,7 @@ export default function AdminDashboard() {
   }
 
   const fetchSeeds = async () => {
+    setSeedsLoading(true)
     try {
       const response = await fetch("/api/seeds")
       if (response.ok) {
@@ -90,6 +92,8 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       console.error("Failed to fetch seeds:", err)
+    } finally {
+      setSeedsLoading(false)
     }
   }
 
@@ -223,6 +227,17 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="seeds" className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Plant Types</h2>
+              <button
+                onClick={fetchSeeds}
+                disabled={seedsLoading}
+                className="p-2 hover:bg-accent rounded-md transition-colors"
+                title="Refresh seeds"
+              >
+                <RotateCw size={18} className={seedsLoading ? "animate-spin" : ""} />
+              </button>
+            </div>
             <SeedsManager seeds={seeds} onSeedCreated={handleSeedCreated} />
           </TabsContent>
 

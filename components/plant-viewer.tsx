@@ -129,8 +129,8 @@ export function PlantViewer({ plant: initialPlant, onClose }: PlantViewerProps) 
                     <div key={pic.uploaded} className="space-y-2">
                       <img
                         src={pic.src || "/placeholder.svg"}
-                        alt={`Plant picture ${pic.id}`}
-                        className="w-full h-40 object-cover rounded-lg border"
+                        alt={`Plant picture`}
+                        className="w-full object-cover rounded-lg border"
                       />
                       <p className="text-xs text-muted-foreground"> {formatDateTime(pic.uploaded)}</p>
                     </div>

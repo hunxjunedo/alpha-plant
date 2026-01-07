@@ -107,7 +107,7 @@ export function SeedsManager({ seeds, onSeedCreated }: SeedsManagerProps) {
         </Card>
       )}
 
-      <div className="grid gap-3">
+      <div className="flex flex-row gap-3">
         {seeds.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center text-muted-foreground">
@@ -117,8 +117,8 @@ export function SeedsManager({ seeds, onSeedCreated }: SeedsManagerProps) {
         ) : (
           seeds.map((seed) => (
             <Card key={seed.id}>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
+              <CardContent className="p-6">
+                <div className="flex gap-7 items-center ">
                   <div>
                     <p className="font-medium">{seed.name}</p>
                     <p className="text-sm text-muted-foreground">{seed.id}</p>

@@ -4,23 +4,12 @@ import { useState, useEffect } from "react"
 import { AdminLogin } from "@/components/admin-login"
 import { CreateUserForm } from "@/components/create-user-form"
 import { UsersList } from "@/components/users-list"
-import { PlantViewer } from "@/components/plant-viewer"
+import { Plant, PlantViewer } from "@/components/plant-viewer"
 import { SeedsManager } from "@/components/seeds-manager"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Leaf, LogOut, RotateCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-interface Plant {
-  id: string
-  name: string
-  planted: string
-  lastProofPicture?: string
-  pictures: Array<{
-    id: string
-    src: string
-    userId: string
-  }>
-}
 
 export default function AdminDashboard() {
   const [authenticated, setAuthenticated] = useState(false)

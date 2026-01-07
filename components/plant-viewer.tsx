@@ -13,7 +13,7 @@ interface Picture {
   uploaded: string
 }
 
-interface Plant {
+export interface Plant {
   id: string
   name: string
   planted: string

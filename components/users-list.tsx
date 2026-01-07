@@ -7,14 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CreatePlantFormModal } from "./create-plant-form-modal"
 import { formatDateOnly } from "@/lib/date-formatter"
+import { Plant } from "./plant-viewer"
 
-interface Plant {
-  id: string
-  name: string
-  planted: string
-  last_proof_picture?: string
-  pictures: Array<{ id: string; src: string; userId: string }>
-}
 
 interface User {
   _id: string

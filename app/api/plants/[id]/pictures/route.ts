@@ -9,19 +9,28 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
+
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const userToken = request.cookies.get("user_token")?.value
     if (!userToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const payload = await verifyToken(userToken);
+    const payload = await verifyToken(userToken)
     if (!payload || payload.role !== "user") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const formData = await request.formData()
     const file = formData.get("file") as File
     if (!file) return NextResponse.json({ error: "Missing image file" }, { status: 400 })
 
-    const { id: plantId } = await params
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: `File size must be less than 5MB (current: ${(file.size / 1024 / 1024).toFixed(2)}MB)` },
+        { status: 413 },
+      )
+    }
+
+    const { id: plantId } = params
     const db = await connectDB()
 
     const plant = await db.collection("plants").findOne({ id: plantId })

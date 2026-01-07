@@ -32,6 +32,8 @@ export default function UserDashboard() {
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -72,13 +74,23 @@ export default function UserDashboard() {
     }))
   }
 
-    const handleLogout = async () => {
+  const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })
     router.push("/login")
   }
 
   const handleUploadPicture = async (plantId: string, file: File) => {
     if (!file) return
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`File size must be less than 5MB (current: ${(file.size / 1024 / 1024).toFixed(2)}MB)`)
+      return
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file")
+      return
+    }
 
     setUploading(plantId)
     const formData = new FormData()
@@ -147,7 +159,9 @@ export default function UserDashboard() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-zinc-900 leading-tight">Alpha Garden</h1>
-              <p className="text-xs text-zinc-500 font-medium">Happy planting, <span className="font-bold">{user?.fullName}</span></p>
+              <p className="text-xs text-zinc-500 font-medium">
+                Happy planting, <span className="font-bold">{user?.fullName}</span>
+              </p>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={handleLogout} className="text-zinc-500 hover:text-red-600">

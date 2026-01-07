@@ -62,8 +62,7 @@ export function SeedsManager({ seeds, onSeedCreated }: SeedsManagerProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Plant Types</h2>
-        <Button onClick={() => setShowCreateForm(!showCreateForm)} size="sm" className="gap-2">
+        <Button disabled={loading} onClick={() => setShowCreateForm(!showCreateForm)} size="sm" className="gap-2">
           <Plus size={16} />
           New Type
         </Button>

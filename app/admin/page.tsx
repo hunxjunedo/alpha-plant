@@ -5,6 +5,7 @@ import { AdminLogin } from "@/components/admin-login"
 import { CreateUserForm } from "@/components/create-user-form"
 import { UsersList } from "@/components/users-list"
 import { PlantViewer } from "@/components/plant-viewer"
+import { SeedsManager } from "@/components/seeds-manager"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Leaf, LogOut, RotateCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -29,6 +30,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<Array<any>>([])
   const [plants, setPlants] = useState<Record<string, Plant>>({})
   const [usersLoading, setUsersLoading] = useState(false)
+  const [seeds, setSeeds] = useState<Array<any>>([])
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -79,9 +81,22 @@ export default function AdminDashboard() {
     }
   }
 
+  const fetchSeeds = async () => {
+    try {
+      const response = await fetch("/api/seeds")
+      if (response.ok) {
+        const data = await response.json()
+        setSeeds(data)
+      }
+    } catch (err) {
+      console.error("Failed to fetch seeds:", err)
+    }
+  }
+
   useEffect(() => {
     if (authenticated) {
       fetchUsers()
+      fetchSeeds()
     }
   }, [authenticated])
 
@@ -131,6 +146,10 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleSeedCreated = (newSeed: any) => {
+    setSeeds((prevSeeds) => [...prevSeeds, newSeed])
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -167,9 +186,10 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="create-user">Create User</TabsTrigger>
+            <TabsTrigger value="seeds">Seeds</TabsTrigger>
             <TabsTrigger value="plant-details" disabled={!selectedPlant}>
               Plant Details
             </TabsTrigger>
@@ -194,11 +214,16 @@ export default function AdminDashboard() {
               onPlantSelected={handlePlantSelected}
               onUserCreated={handleUserCreated}
               onPlantCreatedOptimistic={handlePlantCreatedOptimistic}
+              seeds={seeds}
             />
           </TabsContent>
 
           <TabsContent value="create-user" className="space-y-4">
             <CreateUserForm onSuccess={handleUserCreated} />
+          </TabsContent>
+
+          <TabsContent value="seeds" className="space-y-4">
+            <SeedsManager seeds={seeds} onSeedCreated={handleSeedCreated} />
           </TabsContent>
 
           <TabsContent value="plant-details" className="space-y-4">

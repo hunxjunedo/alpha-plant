@@ -25,13 +25,20 @@ interface User {
   plants: string[]
 }
 
+interface Seed {
+  id: string
+  name: string
+  plant_given: number
+}
+
 interface UsersListProps {
   users: User[]
   plants: Record<string, Plant>
   loading: boolean
   onPlantSelected?: (plant: Plant) => void
   onUserCreated?: () => void
-  onPlantCreatedOptimistic?: (userId: string, newPlant: Plant) => void // Added optimistic update callback
+  onPlantCreatedOptimistic?: (userId: string, newPlant: Plant) => void
+  seeds: Seed[]
 }
 
 export function UsersList({
@@ -41,6 +48,7 @@ export function UsersList({
   onPlantSelected,
   onUserCreated,
   onPlantCreatedOptimistic,
+  seeds,
 }: UsersListProps) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [showPlantForm, setShowPlantForm] = useState(false)
@@ -149,6 +157,7 @@ export function UsersList({
       {showPlantForm && selectedUser && (
         <CreatePlantFormModal
           user={selectedUser}
+          seeds={seeds}
           onSuccess={handlePlantCreated}
           onClose={() => setShowPlantForm(false)}
         />

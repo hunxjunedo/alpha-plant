@@ -28,3 +28,10 @@ export interface User {
   plants: string[]
   // plants array contains plant IDs for the relation
 }
+
+export interface Seed {
+  _id?: ObjectId
+  id: string
+  name: string
+  plant_given: number
+}

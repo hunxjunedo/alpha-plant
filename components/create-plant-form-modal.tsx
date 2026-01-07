@@ -16,20 +16,21 @@ interface User {
 
 interface CreatePlantFormModalProps {
   user: User
-  onSuccess?: (newPlant: any) => void // Updated signature to pass the new plant back
+  seeds: Array<{ id: string; name: string; plant_given: number }>
+  onSuccess?: (newPlant: any) => void
   onClose?: () => void
 }
 
-export function CreatePlantFormModal({ user, onSuccess, onClose }: CreatePlantFormModalProps) {
+export function CreatePlantFormModal({ user, seeds, onSuccess, onClose }: CreatePlantFormModalProps) {
   const [formData, setFormData] = useState({
-    name: "",
+    seedId: "",
     planted: new Date().toISOString().split("T")[0],
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
@@ -39,8 +40,8 @@ export function CreatePlantFormModal({ user, onSuccess, onClose }: CreatePlantFo
     setError("")
     setSuccess("")
 
-    if (!formData.name) {
-      setError("Please fill in all required fields")
+    if (!formData.seedId) {
+      setError("Please select a plant type")
       return
     }
 
@@ -51,18 +52,18 @@ export function CreatePlantFormModal({ user, onSuccess, onClose }: CreatePlantFo
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.name,
+          seedId: formData.seedId,
           userId: user.id,
           planted: formData.planted,
         }),
       })
 
       if (response.ok) {
-        const newPlantData = await response.json() // Get the created plant data
+        const newPlantData = await response.json()
         setSuccess("Plant created successfully!")
-        setFormData({ name: "", planted: new Date().toISOString().split("T")[0] })
+        setFormData({ seedId: "", planted: new Date().toISOString().split("T")[0] })
         setTimeout(() => {
-          onSuccess?.(newPlantData) // Pass the new plant back for optimistic update
+          onSuccess?.(newPlantData)
         }, 500)
       } else {
         const data = await response.json()
@@ -85,15 +86,24 @@ export function CreatePlantFormModal({ user, onSuccess, onClose }: CreatePlantFo
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Plant Name</label>
-              <Input
-                type="text"
-                name="name"
-                value={formData.name}
+              <label className="block text-sm font-medium mb-1">Plant Type</label>
+              <select
+                name="seedId"
+                value={formData.seedId}
                 onChange={handleChange}
-                placeholder="e.g., Monstera Deliciosa"
-                disabled={loading}
-              />
+                disabled={loading || seeds.length === 0}
+                className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground"
+              >
+                <option value="">Select a plant type...</option>
+                {seeds.map((seed) => (
+                  <option key={seed.id} value={seed.id}>
+                    {seed.name}
+                  </option>
+                ))}
+              </select>
+              {seeds.length === 0 && (
+                <p className="text-xs text-muted-foreground mt-1">Create seed types first in the Seeds tab</p>
+              )}
             </div>
 
             <div>

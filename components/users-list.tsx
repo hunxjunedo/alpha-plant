@@ -10,6 +10,8 @@ import { formatDateOnly } from "@/lib/date-formatter"
 import { Plant } from "./plant-viewer"
 
 
+type PlantSummary = Pick<Plant, "id" | "name">
+
 interface User {
   _id: string
   id: string
@@ -28,6 +30,7 @@ interface Seed {
 interface UsersListProps {
   users: User[]
   plants: Record<string, Plant>
+  plantSummaries: Record<string, PlantSummary>
   loading: boolean
   onPlantSelected?: (plant: Plant) => void
   onUserCreated?: () => void
@@ -38,6 +41,7 @@ interface UsersListProps {
 export function UsersList({
   users,
   plants,
+  plantSummaries,
   loading,
   onPlantSelected,
   onUserCreated,
@@ -54,8 +58,19 @@ export function UsersList({
     return users.filter((user) => user.id.toLowerCase().includes(query) || user.fullName.toLowerCase().includes(query))
   }, [users, searchQuery])
 
-  const handleViewPlant = (plant: Plant) => {
-    onPlantSelected?.(plant)
+  const handleViewPlant = async (plantId: string) => {
+    if (plants[plantId]) {
+      onPlantSelected?.(plants[plantId])
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/plants/${plantId}`)
+      if (!response.ok) throw new Error("Failed to fetch plant")
+      onPlantSelected?.(await response.json())
+    } catch (error) {
+      console.error("Failed to fetch plant:", error)
+    }
   }
 
   const handleAddPlant = (user: User) => {
@@ -121,10 +136,10 @@ export function UsersList({
                               key={plantId}
                               variant="outline"
                               size="sm"
-                              onClick={() => handleViewPlant(plants[plantId])}
-                              disabled={!plants[plantId]}
+                              onClick={() => handleViewPlant(plantId)}
+                              disabled={!plantSummaries[plantId]}
                             >
-                              {plants[plantId]?.name || "Loading..."}
+                              {plantSummaries[plantId]?.name || "Unavailable"}
                             </Button>
                           ))}
                         </div>

@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/mongodb"
 import { verifyToken } from "@/lib/jwt";
 
-export async function GET(request: NextRequest, { params } ) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const token = request.cookies.get("admin_token") || request.cookies.get("user_token");
  
@@ -16,12 +16,16 @@ export async function GET(request: NextRequest, { params } ) {
 
 
     const db = await connectDB()
-    const {id} = await params;
-    let searchFilter : any = {id};
+    const { id } = await params
+    const summaryOnly = new URL(request.url).searchParams.get("summary") === "true"
+    let searchFilter: any = { id };
     if (payload.role === 'user'){
       searchFilter = {id, userId: payload.userId}
     }
-    const plant = await db.collection("plants").findOne(searchFilter)
+    const plant = await db.collection("plants").findOne(
+      searchFilter,
+      summaryOnly ? { projection: { _id: 0, id: 1, name: 1 } } : undefined,
+    )
 
     if (!plant) {
       return NextResponse.json({ error: "Plant not found" }, { status: 404 })

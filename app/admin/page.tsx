@@ -44,25 +44,7 @@ export default function AdminDashboard() {
       const response = await fetch("/api/users")
       if (response.ok) {
         const data = await response.json()
-        console.log(data)
         setUsers(data)
-        const plantsMap: Record<string, Plant> = {}
-        for (const user of data) {
-          for (const plantId of user.plants) {
-            if (!plantsMap[plantId]) {
-              try {
-                const plantRes = await fetch(`/api/plants/${plantId}`)
-                if (plantRes.ok) {
-                  const plant = await plantRes.json()
-                  plantsMap[plantId] = plant
-                }
-              } catch (err) {
-                console.error("Failed to fetch plant:", plantId)
-              }
-            }
-          }
-        }
-        setPlants(plantsMap)
       }
     } catch (err) {
       console.error("Failed to fetch users:", err)
@@ -121,6 +103,7 @@ export default function AdminDashboard() {
   }
 
   const handlePlantSelected = (plant: Plant) => {
+    setPlants((prevPlants) => ({ ...prevPlants, [plant.id]: plant }))
     setSelectedPlant(plant)
     setActiveTab("plant-details")
   }

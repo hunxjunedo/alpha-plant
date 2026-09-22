@@ -1,5 +1,3 @@
-import Credit from "@/components/credit";
-
 export default function Home() {
   return (
     <div className="flex items-center flex-col justify-center min-h-screen">
@@ -9,7 +7,6 @@ export default function Home() {
       <a href="/login" className="text-lg font-semibold hover:underline text-primary">
         Go to User Dashboard →
       </a>
-      <Credit />
     </div>
   )
 }

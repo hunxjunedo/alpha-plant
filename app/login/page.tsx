@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Eye, EyeClosed, Leaf } from "lucide-react"
+import { Eye, EyeClosed } from "lucide-react"
 
 export default function UserLoginPage() {
   const [id, setId] = useState("")
@@ -46,9 +46,11 @@ export default function UserLoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
-            <Leaf size={32} />
-          </div>
+          <img
+            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-alpha-8kvWg5IPHgiYiMT3aGPJ1GXiCI6qbI.jpg"
+            alt="Alpha College"
+            className="mx-auto mb-4 size-16 rounded-xl object-cover shadow-sm"
+          />
           <h1 className="text-3xl font-bold text-zinc-900">Plant Parent Login</h1>
           <p className="text-zinc-600 mt-2">Access your Alpha Garden dashboard</p>
         </div>

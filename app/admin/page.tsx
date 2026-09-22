@@ -18,6 +18,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("users")
   const [users, setUsers] = useState<Array<any>>([])
   const [plants, setPlants] = useState<Record<string, Plant>>({})
+  const [plantSummaries, setPlantSummaries] = useState<Record<string, Pick<Plant, "id" | "name">>>({})
   const [usersLoading, setUsersLoading] = useState(false)
   const [seeds, setSeeds] = useState<Array<any>>([])
   const [seedsLoading, setSeedsLoading] = useState(false)
@@ -45,6 +46,19 @@ export default function AdminDashboard() {
       if (response.ok) {
         const data = await response.json()
         setUsers(data)
+        const plantIds: string[] = [...new Set<string>(data.flatMap((user: { plants: string[] }) => user.plants))]
+        const summaryEntries = await Promise.all(
+          plantIds.map(async (plantId: string) => {
+            const plantResponse = await fetch(`/api/plants/${plantId}?summary=true`)
+            if (!plantResponse.ok) return null
+            return (await plantResponse.json()) as Pick<Plant, "id" | "name">
+          }),
+        )
+        setPlantSummaries(
+          Object.fromEntries(
+            summaryEntries.filter((plant): plant is Pick<Plant, "id" | "name"> => Boolean(plant)).map((plant) => [plant.id, plant]),
+          ),
+        )
       }
     } catch (err) {
       console.error("Failed to fetch users:", err)
@@ -99,6 +113,10 @@ export default function AdminDashboard() {
     setPlants((prevPlants) => ({
       ...prevPlants,
       [newPlant.id]: newPlant,
+    }))
+    setPlantSummaries((prevSummaries) => ({
+      ...prevSummaries,
+      [newPlant.id]: { id: newPlant.id, name: newPlant.name },
     }))
   }
 
@@ -183,9 +201,10 @@ export default function AdminDashboard() {
                 <RotateCw size={18} className={usersLoading ? "animate-spin" : ""} />
               </button>
             </div>
-            <UsersList
-              users={users}
-              plants={plants}
+              <UsersList
+                users={users}
+                plants={plants}
+                plantSummaries={plantSummaries}
               loading={usersLoading}
               onPlantSelected={handlePlantSelected}
               onUserCreated={handleUserCreated}

@@ -6,7 +6,8 @@ export default function Credit(){
     const [open, SetOpen] = useState(true)
     const toggleState = ()=>(SetOpen(v=>!v))
     return <div style={{
-            position: 'absolute',
+            position: 'fixed',
+            zIndex: 50,
             right: 20,
             bottom:20,
             justifyItems: 'center',

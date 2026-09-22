@@ -51,12 +51,17 @@ export function UsersList({
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [showPlantForm, setShowPlantForm] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const usersPerPage = 25
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return users
     const query = searchQuery.toLowerCase()
     return users.filter((user) => user.id.toLowerCase().includes(query) || user.fullName.toLowerCase().includes(query))
   }, [users, searchQuery])
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / usersPerPage))
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage)
 
   const handleViewPlant = async (plantId: string) => {
     if (plants[plantId]) {
@@ -103,7 +108,10 @@ export function UsersList({
             <Input
               placeholder="Search by user ID or full name..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setCurrentPage(1)
+              }}
               className="max-w-sm"
             />
           </div>
@@ -122,7 +130,7 @@ export function UsersList({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
+                {paginatedUsers.map((user) => (
                   <TableRow key={user._id}>
                     <TableCell className="font-medium">{user.id}</TableCell>
                     <TableCell>{user.fullName}</TableCell>
@@ -159,6 +167,34 @@ export function UsersList({
           </div>
           {filteredUsers.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">No users found matching your search.</div>
+          )}
+          {filteredUsers.length > 0 && (
+            <div className="mt-4 flex items-center justify-between gap-4 border-t pt-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {(currentPage - 1) * usersPerPage + 1}-{Math.min(currentPage * usersPerPage, filteredUsers.length)} of {filteredUsers.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

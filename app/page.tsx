@@ -1,4 +1,4 @@
-import { ArrowRight, Leaf, LockKeyhole, Sprout, Users, Wheat } from "lucide-react"
+import { ArrowRight, LockKeyhole, Sprout, Users, Wheat } from "lucide-react"
 import Link from "next/link"
 import { connectDB } from "@/lib/mongodb"
 
@@ -7,17 +7,13 @@ export const dynamic = "force-dynamic"
 async function getPublicStats() {
   const db = await connectDB()
 
-  const [users, plants, seedResult] = await Promise.all([
+  const [users, plants, seeds] = await Promise.all([
     db.collection("users").countDocuments(),
     db.collection("plants").countDocuments(),
-    db.collection("seeds").aggregate([{ $group: { _id: null, total: { $sum: "$plant_given" } } }]).toArray(),
+    db.collection("seeds").countDocuments(),
   ])
 
-  return {
-    users,
-    plants,
-    seeds: Number(seedResult[0]?.total ?? 0),
-  }
+  return { users, plants, seeds }
 }
 
 function formatStat(value: number) {
@@ -33,9 +29,11 @@ export default async function Home() {
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8 sm:px-10 lg:px-12">
         <header className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 text-sm font-semibold tracking-tight">
-            <span className="grid size-10 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-              <Leaf className="size-5" aria-hidden="true" />
-            </span>
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-alpha-8kvWg5IPHgiYiMT3aGPJ1GXiCI6qbI.jpg"
+              alt="Alpha College"
+              className="size-11 rounded-lg object-cover"
+            />
             <span>Alpha Garden</span>
           </Link>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -82,17 +80,7 @@ export default async function Home() {
               <div className="mt-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
                 <StatCard icon={Sprout} value={stats.plants} label="Plants planted" />
                 <StatCard icon={Users} value={stats.users} label="Gardeners" />
-                <StatCard icon={Wheat} value={stats.seeds} label="Seeds shared" />
-              </div>
-              <div className="mt-8 rounded-2xl bg-secondary/70 p-4">
-                <div className="flex items-center justify-between text-xs font-medium">
-                  <span className="text-muted-foreground">A community in motion</span>
-                  <span className="text-primary">Live totals</span>
-                </div>
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-background">
-                  <div className="h-full w-[78%] rounded-full bg-primary" />
-                </div>
-                <p className="mt-3 text-xs leading-5 text-muted-foreground">Every number above is read securely on the server from the garden database.</p>
+                <StatCard icon={Wheat} value={stats.seeds} label="Seed types" />
               </div>
             </div>
           </div>

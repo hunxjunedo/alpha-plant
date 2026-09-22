@@ -52,7 +52,7 @@ export default async function Home() {
               Small seeds. <span className="text-primary">Shared growth.</span>
             </h1>
             <p className="mt-7 max-w-lg text-base leading-7 text-muted-foreground sm:text-lg">
-              Alpha Garden helps people nurture plants, keep their progress visible, and celebrate the impact of growing together.
+              Alpha Garden helps Alpha College students nurture plants, keep their progress visible, and celebrate the impact of growing together.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:-translate-y-0.5">

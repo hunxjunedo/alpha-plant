@@ -11,7 +11,7 @@ cloudinary.config({
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userToken = request.cookies.get("user_token")?.value
     if (!userToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       )
     }
 
-    const { id: plantId } = params
+    const { id: plantId } = await params
     const db = await connectDB()
 
     const plant = await db.collection("plants").findOne({ id: plantId })

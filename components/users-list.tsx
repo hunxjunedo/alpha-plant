@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useMemo } from "react"
+import { Loader2 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,8 +10,6 @@ import { CreatePlantFormModal } from "./create-plant-form-modal"
 import { formatDateOnly } from "@/lib/date-formatter"
 import { Plant } from "./plant-viewer"
 
-
-type PlantSummary = Pick<Plant, "id" | "name">
 
 interface User {
   _id: string
@@ -30,9 +29,9 @@ interface Seed {
 interface UsersListProps {
   users: User[]
   plants: Record<string, Plant>
-  plantSummaries: Record<string, PlantSummary>
   loading: boolean
   onPlantSelected?: (plant: Plant) => void
+  onPlantsLoaded?: (plants: Plant[]) => void
   onUserCreated?: () => void
   onPlantCreatedOptimistic?: (userId: string, newPlant: Plant) => void
   seeds: Seed[]
@@ -41,9 +40,9 @@ interface UsersListProps {
 export function UsersList({
   users,
   plants,
-  plantSummaries,
   loading,
   onPlantSelected,
+  onPlantsLoaded,
   onUserCreated,
   onPlantCreatedOptimistic,
   seeds,
@@ -53,6 +52,8 @@ export function UsersList({
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const usersPerPage = 25
+  const [visiblePlants, setVisiblePlants] = useState<Record<string, boolean>>({})
+  const [loadingPlants, setLoadingPlants] = useState<Record<string, boolean>>({})
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return users
@@ -76,6 +77,33 @@ export function UsersList({
     } catch (error) {
       console.error("Failed to fetch plant:", error)
     }
+  }
+
+  const handleShowPlants = async (user: User) => {
+    if (visiblePlants[user.id]) {
+      setVisiblePlants((current) => ({ ...current, [user.id]: false }))
+      return
+    }
+
+    const missingPlantIds = user.plants.filter((plantId) => !plants[plantId])
+    if (missingPlantIds.length > 0) {
+      setLoadingPlants((current) => ({ ...current, [user.id]: true }))
+      try {
+        const fetchedPlants = await Promise.all(
+          missingPlantIds.map(async (plantId) => {
+            const response = await fetch(`/api/plants/${plantId}`)
+            if (!response.ok) throw new Error(`Failed to fetch plant ${plantId}`)
+            return (await response.json()) as Plant
+          }),
+        )
+        onPlantsLoaded?.(fetchedPlants)
+      } catch (error) {
+        console.error("Failed to fetch plants:", error)
+      } finally {
+        setLoadingPlants((current) => ({ ...current, [user.id]: false }))
+      }
+    }
+    setVisiblePlants((current) => ({ ...current, [user.id]: true }))
   }
 
   const handleAddPlant = (user: User) => {
@@ -138,18 +166,20 @@ export function UsersList({
                     <TableCell>{formatDateOnly(user.created)}</TableCell>
                     <TableCell>
                       {user.plants.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                          {user.plants.map((plantId) => (
-                            <Button
-                              key={plantId}
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewPlant(plantId)}
-                              disabled={!plantSummaries[plantId]}
-                            >
-                              {plantSummaries[plantId]?.name || "Unavailable"}
-                            </Button>
-                          ))}
+                        <div className="flex flex-col items-start gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleShowPlants(user)} disabled={loadingPlants[user.id]}>
+                            {loadingPlants[user.id] && <Loader2 data-icon="inline-start" className="animate-spin" />}
+                            {visiblePlants[user.id] ? "Hide plants" : `Show plants (${user.plants.length})`}
+                          </Button>
+                          {visiblePlants[user.id] && !loadingPlants[user.id] && (
+                            <div className="flex flex-wrap gap-2">
+                              {user.plants.map((plantId) => (
+                                <Button key={plantId} variant="outline" size="sm" onClick={() => handleViewPlant(plantId)}>
+                                  {plants[plantId]?.name || "Unavailable"}
+                                </Button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <span className="text-muted-foreground text-sm">No plants</span>

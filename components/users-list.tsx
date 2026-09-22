@@ -153,7 +153,7 @@ export function UsersList({
                   <TableHead>Full Name</TableHead>
                   <TableHead>House</TableHead>
                   <TableHead>Created</TableHead>
-                  <TableHead>Plants</TableHead>
+                  <TableHead>Plants Given</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>

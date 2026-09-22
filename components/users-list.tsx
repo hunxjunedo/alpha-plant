@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useMemo } from "react"
+import { Loader2 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -30,7 +31,6 @@ interface Seed {
 interface UsersListProps {
   users: User[]
   plants: Record<string, Plant>
-  plantSummaries: Record<string, PlantSummary>
   loading: boolean
   onPlantSelected?: (plant: Plant) => void
   onUserCreated?: () => void
@@ -41,7 +41,6 @@ interface UsersListProps {
 export function UsersList({
   users,
   plants,
-  plantSummaries,
   loading,
   onPlantSelected,
   onUserCreated,
@@ -51,6 +50,10 @@ export function UsersList({
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [showPlantForm, setShowPlantForm] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>({})
+  const [plantSummaries, setPlantSummaries] = useState<Record<string, PlantSummary>>({})
+  const [loadingUserPlants, setLoadingUserPlants] = useState<Record<string, boolean>>({})
+  const [plantErrors, setPlantErrors] = useState<Record<string, string>>({})
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return users
@@ -68,8 +71,39 @@ export function UsersList({
       const response = await fetch(`/api/plants/${plantId}`)
       if (!response.ok) throw new Error("Failed to fetch plant")
       onPlantSelected?.(await response.json())
-    } catch (error) {
-      console.error("Failed to fetch plant:", error)
+    } catch {
+      setPlantErrors((current) => ({ ...current, [plantId]: "Unable to load plant" }))
+    }
+  }
+
+  const handleShowPlants = async (user: User) => {
+    if (expandedUsers[user.id]) {
+      setExpandedUsers((current) => ({ ...current, [user.id]: false }))
+      return
+    }
+
+    setExpandedUsers((current) => ({ ...current, [user.id]: true }))
+    if (!user.plants.length || user.plants.every((plantId) => plantSummaries[plantId])) return
+
+    setLoadingUserPlants((current) => ({ ...current, [user.id]: true }))
+    setPlantErrors((current) => ({ ...current, [user.id]: "" }))
+    try {
+      const summaries = await Promise.all(
+        user.plants.map(async (plantId) => {
+          if (plantSummaries[plantId]) return plantSummaries[plantId]
+          const response = await fetch(`/api/plants/${plantId}?summary=true`)
+          if (!response.ok) throw new Error(`Failed to fetch plant ${plantId}`)
+          return (await response.json()) as Plant
+        }),
+      )
+      setPlantSummaries((current) => ({
+        ...current,
+        ...Object.fromEntries(summaries.map((plant) => [plant.id, plant])),
+      }))
+    } catch {
+      setPlantErrors((current) => ({ ...current, [user.id]: "Some plants could not be loaded" }))
+    } finally {
+      setLoadingUserPlants((current) => ({ ...current, [user.id]: false }))
     }
   }
 
@@ -130,18 +164,32 @@ export function UsersList({
                     <TableCell>{formatDateOnly(user.created)}</TableCell>
                     <TableCell>
                       {user.plants.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                          {user.plants.map((plantId) => (
-                            <Button
-                              key={plantId}
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewPlant(plantId)}
-                              disabled={!plantSummaries[plantId]}
-                            >
-                              {plantSummaries[plantId]?.name || "Unavailable"}
-                            </Button>
-                          ))}
+                        <div className="flex flex-col items-start gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleShowPlants(user)}
+                            disabled={loadingUserPlants[user.id]}
+                          >
+                            {loadingUserPlants[user.id] && <Loader2 data-icon="inline-start" className="animate-spin" />}
+                            {expandedUsers[user.id] ? "Hide plants" : `Show plants (${user.plants.length})`}
+                          </Button>
+                          {expandedUsers[user.id] && !loadingUserPlants[user.id] && (
+                            <div className="flex flex-wrap gap-2">
+                              {user.plants.map((plantId) => (
+                                <Button
+                                  key={plantId}
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleViewPlant(plantId)}
+                                  disabled={!plantSummaries[plantId]}
+                                >
+                                  {plantSummaries[plantId]?.name || "Unavailable"}
+                                </Button>
+                              ))}
+                            </div>
+                          )}
+                          {plantErrors[user.id] && <p className="text-sm text-destructive">{plantErrors[user.id]}</p>}
                         </div>
                       ) : (
                         <span className="text-muted-foreground text-sm">No plants</span>
